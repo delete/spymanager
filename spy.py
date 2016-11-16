@@ -1,5 +1,4 @@
 from src.imagesite import ImageSite
-
 from src.group import Group
 
 image_site = ImageSite()

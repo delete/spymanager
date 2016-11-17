@@ -6,6 +6,9 @@ class Group():
         self.name = name
         self.users = users
 
+    def __repr__(self):
+        return '{}'.format(self.name)
+
     def add_user(self, user):
         self.users.append(user)
 

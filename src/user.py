@@ -11,6 +11,9 @@ class User():
         self.images = self._get_images(self._data)
         self._get_user_informations(self._data)
 
+    def __repr__(self):
+        return '{}'.format(self.username)
+
     def _extract_data_from_html(self, html_content):
         json_text = self._extract_json_data_from_html(html_content)
         # clean text removing these junk strings

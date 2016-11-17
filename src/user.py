@@ -53,6 +53,7 @@ class User():
     def _get_user_informations(self, user_data):
         self.id = user_data['id']
         self.name = user_data['full_name']
+        # Following back only works if who is requesting is logged
         self.is_following_back = user_data['follows_viewer']
         self.is_private = user_data['follows_viewer']
 

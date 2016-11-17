@@ -9,8 +9,7 @@ class User():
         self._data = self._extract_data_from_html(html_page)
 
         self.images = self._get_images(self._data)
-        self.id = self._get_user_id(self._data)
-        self.name = self._get_user_name(self._data)
+        self._get_user_informations(self._data)
 
     def _extract_data_from_html(self, html_content):
         json_text = self._extract_json_data_from_html(html_content)
@@ -51,11 +50,11 @@ class User():
             }
         return images
 
-    def _get_user_id(self, user_data):
-        return user_data['id']
-
-    def _get_user_name(self, user_data):
-        return user_data['full_name']
+    def _get_user_informations(self, user_data):
+        self.id = user_data['id']
+        self.name = user_data['full_name']
+        self.is_following_back = user_data['follows_viewer']
+        self.is_private = user_data['follows_viewer']
 
     def pretty_print(self):
         print('####################')

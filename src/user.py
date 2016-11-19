@@ -1,5 +1,7 @@
 import json
 
+from src.myexceptions import UserNotFoundException
+
 
 class User():
     """ SiteImage user model """
@@ -48,7 +50,7 @@ class User():
 
         for node in nodes:
             images[node['code']] = {
-                'display_src': node.get('display_src'),
+                'src': node.get('display_src'),
                 'caption': node.get('caption')
             }
         return images
@@ -67,7 +69,3 @@ class User():
         for image in self.images:
             print(self.images[image]['display_src'])
             print('-----------------------\n')
-
-
-class UserNotFoundException(Exception):
-    pass

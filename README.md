@@ -11,4 +11,4 @@ Create and manager groups of users from ImageSite getting the latest (12 till no
 
 ## Run
 
-`python spy.py`
+`python example.py`

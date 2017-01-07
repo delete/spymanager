@@ -1,44 +1,121 @@
-from src.myexceptions import GroupNotFoundException
-from src.group import Group
+import datetime
+import pymongo
+
+
+class SpyManager():
+    def __init__(self, database):
+        self.database = database
+
+        self.spies = self.database.collection
+
+    def add_spy(self, username):
+        newSpy = {
+            "username": username,
+            "groups": [],
+            "created": datetime.datetime.utcnow()
+        }
+
+        try:
+            self.spies.insert_one(newSpy)
+        except pymongo.errors.DuplicateKeyError:
+            print('Spy {} already exists!'.format(newSpy['username']))
+
+    def remove_spy(self, username):
+        self.spies.find_one_and_delete({"username": username})
+
+    def get_spy(self, username):
+        return Spy(username=username, collection=self.spies)
 
 
 class Spy():
-    """ User bot model """
+    """ Spy model that wrapper spy mongo object"""
 
-    def __init__(self, username, groups=[]):
+    def __init__(self, username, collection):
         self.username = username
-        self.groups = groups
+        self.spies = collection
 
-    def __repr__(self):
-        return '{}'.format(self.username)
+    @property
+    def _spy(self):
+        return self.spies.find_one({"username": self.username})
 
-    def add_group(self, groupname):
-        group = self.find_group(groupname)
-        if group is None:
-            newgroup = Group(name=groupname)
-            self.groups.append(newgroup)
+    @property
+    def groups(self):
+        return self._spy['groups']
 
-    def rm_group(self, groupname):
-        group = self.find_group(groupname)
-        if group is None:
-            raise GroupNotFoundException
+    @property
+    def groups_names(self):
+        return [group['name'] for group in self.groups]
 
-        self.groups.remove(group)
-
-    def add_user_to_group(self, username, groupname):
-        group = self.find_group(groupname)
-        if group is None:
-            raise GroupNotFoundException
-        group.add_user(username)
-
-    # Return the group object by given the group name
-    def find_group(self, groupname):
+    def members_from_group(self, group_name):
+        found_group = None
         for group in self.groups:
-            if group.name == groupname:
-                return group
-        return None
+            if group['name'] == group_name:
+                found_group = group
+                break
+        return found_group['users']
 
-    def clear(self):
+    def exists(self):
+        return self._spy is not None
+
+    def add_group(self, group_name):
+        newGroup = {
+            "name": group_name,
+            "users": []
+        }
+
+        if newGroup['name'] not in self.groups_names:
+            self.spies.find_one_and_update(
+                {'username': self.username},
+                {'$push': {'groups': newGroup}}
+            )
+        else:
+            print('Group {} already exists!'.format(newGroup['name']))
+
+    def remove_group(self, group_name):
+        if not self._isGroupExists(group_name):
+            print('Group {} does not exist!'.format(group_name))
+            return
+
+        self.spies.find_one_and_update(
+            {'$and': [
+                {'username': self.username},
+                {'groups.name': group_name}
+            ]},
+            {'$pull': {'groups': {"name": group_name}}}
+        )
+
+    def add_member_to_group(self, member_username, group_name):
+        found_group = None
+
         for group in self.groups:
-            group.clear()
-        self.groups = []
+            if group['name'] == group_name:
+                found_group = group
+                break
+
+        if found_group:
+            if member_username not in found_group['users']:
+                self.spies.find_one_and_update(
+                    {'$and': [
+                        {'username': self.username},
+                        {'groups.name': group_name}
+                    ]},
+                    {'$push': {'groups.$.users': member_username}}
+                )
+        else:
+            print('Group {} does not exist!'.format(group_name))
+
+    def remove_member_from_group(self, member_username, group_name):
+        if not self._isGroupExists(group_name):
+            print('Group {} does not exist!'.format(group_name))
+            return
+
+        self.spies.find_one_and_update(
+            {'$and': [
+                {'username': self.username},
+                {'groups.name': group_name}
+            ]},
+            {'$pull': {'groups.$.users': {'$in': [member_username]}}}
+        )
+
+    def _isGroupExists(self, group_name):
+        return group_name in self.groups_names

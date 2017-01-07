@@ -1,0 +1,19 @@
+bot:
+  container_name: spy_bot
+  build: .
+  command: /usr/bin/python3 bot.py
+  restart: always
+  volumes:
+    - .:/bot/spylist
+  env_file: .env
+  user: bot
+  links:
+    - database
+
+database:
+  container_name: spy_bot_db
+  image: "mongo"
+  ports:
+    - "27017:27017"
+  volumes:
+    - mongodata:/data

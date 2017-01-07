@@ -1,32 +1,65 @@
-from src.spy import Spy
+from src.database import MongoSetup
+from src.spy import SpyManager
+from src.imagesite import ImageSite
+
+
+# Database settings
+MONGO_URI = 'mongodb://database:27017/data'
+DATABASE_NAME = 'spies_database'
+COLLECTION_NAME = 'spies'
+
+# User to test
+USERNAME = 'pinheirofellipe'
+
+mongo = MongoSetup(MONGO_URI, DATABASE_NAME, COLLECTION_NAME)
+mongo.create_index(field='username')
+
+# Spy actions
+spy_manager = SpyManager(mongo)
+
+# Remove if it's exists
+spy_manager.remove_spy(USERNAME)
 
 # Adding bot user
-spy_user = Spy(username='delete')
+spy_manager.add_spy(USERNAME)
 
-# Adding some groups
-spy_user.add_group(groupname='devs')
-spy_user.add_group(groupname='sports')
+# Get created spy
+spy = spy_manager.get_spy(USERNAME)
 
-# Adding some users to 'devs' group
-spy_user.add_user_to_group(username='pinheirofellipe', groupname='devs')
-spy_user.add_user_to_group(username='mazulo_', groupname='devs')
+# Adding groups
+new_group = 'devs'
+spy.add_group(new_group)
 
-print("My groups: {}".format(spy_user.groups))
+new_group = 'sports'
+spy.add_group(new_group)
 
-# Get group object
-devs = spy_user.find_group('devs')
+# Adding user to group
+member_username = 'mazulo_'
+group_to_add = 'devs'
+spy.add_member_to_group(member_username, group_to_add)
 
-print("'devs' group users: {}".format(devs.users))
+member_username = 'pinheirofellipe'
+group_to_add = 'devs'
+spy.add_member_to_group(member_username, group_to_add)
 
+# Remove group
+spy.remove_group('sports')
 
-print("\n######################")
-print("'devs' group images")
-print("######################\n")
+# Printing
+print('\nMy groups: {}'.format(spy.groups))
 
-for user in devs.users:
-    print("{} images \n\n".format(user))
+# Removing member
+print("\n Removing mazulo_ from devs")
+spy.remove_member_from_group('mazulo_', 'devs')
 
-    for imagecode in user.images:
-        print(user.images[imagecode]['src'])
+print('\nMy groups: {}'.format(spy.groups))
 
-    print("######################\n")
+site = ImageSite()
+
+for group in spy.groups:
+    print('\n\n\t\tMembers from {} group\n\n'.format(group['name']))
+
+    for member_username in group['users']:
+        print('\n\tImages from {}\n\n'.format(member_username))
+        user = site.get_user(member_username)
+        user.print_images_urls()

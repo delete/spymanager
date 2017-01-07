@@ -62,10 +62,6 @@ class User():
         self.is_following_back = user_data['follows_viewer']
         self.is_private = user_data['follows_viewer']
 
-    def pretty_print(self):
-        print('####################')
-        print('## {} ##'.format(self.name))
-        print('#################### \n\n')
+    def print_images_urls(self):
         for image in self.images:
-            print(self.images[image]['display_src'])
-            print('-----------------------\n')
+            print(self.images[image]['src'])

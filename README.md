@@ -3,17 +3,23 @@
 Create and manager groups of users from ImageSite getting the latest (12 till now) posted photos from each user.
 
 
-## Install
+## Environment file
 
-`pip install -r requeriments.txt`
+Create a `.env` file on the project root folder:
 
+`API_TOKEN=MY_TELEGRAM_API`
 
 ## Run
 
 `docker-compose build && docker-compose up`
 
-
 ## Code example without bot:
+
+### Install dependencies
+
+`pip install -r requeriments.txt`
+
+### Applictaion
 
 **MongoDB Server**
 

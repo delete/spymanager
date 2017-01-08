@@ -18,7 +18,7 @@ bot = telebot.TeleBot(API_TOKEN, threaded=True)
 
 
 # Database settings
-MONGO_URI = 'mongodb://172.17.0.2:27017/data'
+MONGO_URI = 'mongodb://database:27017/data'
 DATABASE_NAME = 'spies_database'
 COLLECTION_NAME = 'spies'
 
@@ -72,10 +72,6 @@ def registered_spy(spy_username):
 
     return None
 
-
-# def clear_previous_markup():
-#     markup = types.ReplyKeyboardHide(selective=False)
-#     bot.send_message(chat_id, message, reply_markup=markup)
 
 # ##### Telegram user functions
 
@@ -168,9 +164,11 @@ def list_groups(message):
 
     markup = types.ReplyKeyboardMarkup(row_width=4, one_time_keyboard=True)
 
-    # bot_answer(message, REGISTERED_GROUPS)
-
     groups_names = []
+
+    if len(spy_user.groups_names) == 0:
+        bot_answer(message, 'There is no group created yet!')
+        return
 
     for group in spy_user.groups_names:
         groups_names.append(types.KeyboardButton('${}'.format(group)))
@@ -238,7 +236,7 @@ def add_user(message):
         member_username=params[1], group_name=params[2]
     )
 
-    bot_answer(message, USER_REMOVED_FROM_GROUP.format(params[1], params[2]))
+    bot_answer(message, NEW_USER_ADDED_TO_GROUP.format(params[1], params[2]))
 
 
 @bot.message_handler(commands=['rmuser'])
@@ -314,27 +312,6 @@ def send_user_photos(message):
 
     for image in user.images:
         bot_answer(message, user.images[image]['src'])
-
-
-# @bot.message_handler(commands=['photos'])
-# def list_group_photos(message):
-#     if anti_spam_on_group(message):
-#         return
-
-#     username = message.from_user.username
-
-#     spy_user = registered_spy(username)
-
-#     if spy_user is None:
-#         bot_answer(message, REGISTER_FIRST)
-
-#     params = message.text.split()
-
-#     group = spy_user.find_group(params[1])
-
-#     for user in group.users:
-#         for image in user.images:
-#             bot_answer(message, user.images[image]['src'])
 
 
 _logger = telebot.logger

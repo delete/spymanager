@@ -1,4 +1,4 @@
-# Spy Manger bot
+# Spy Manager bot
 
 Create and manager groups of users from ImageSite getting the latest (12 till now) posted photos from each user.
 

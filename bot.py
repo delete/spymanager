@@ -2,20 +2,17 @@ import telebot
 from telebot import types
 import logging
 from datetime import datetime, timedelta
+from decouple import config
 
 from src.messages import *
 from src.spy import SpyManager
 from src.database import MongoSetup
 from src.imagesite import ImageSite
 
-
-with open('.env') as file:
-    API_TOKEN = file.read()
-
-assert API_TOKEN is not None
+# Read API_KEY from .env file
+API_TOKEN = config('API_TOKEN')
 
 bot = telebot.TeleBot(API_TOKEN, threaded=True)
-
 
 # Database settings
 MONGO_URI = 'mongodb://database:27017/data'

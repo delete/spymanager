@@ -202,6 +202,7 @@ def members_from_group(message):
 
     if len(members_names) == 0:
         bot_answer(message, 'No members at this group!')
+        return
 
     markup.add(*members_names)
     chat_id = destiny(message)
@@ -228,12 +229,21 @@ def add_user(message):
 
     if len(params) < 3:
         bot_answer(message, 'You forgot some params!')
+        return
 
-    spy_user.add_member_to_group(
-        member_username=params[1], group_name=params[2]
+    members_usernames = params[1].split(',')
+
+    spy_user.add_members_to_group(
+        members_username=members_usernames, group_name=params[2]
     )
 
-    bot_answer(message, NEW_USER_ADDED_TO_GROUP.format(params[1], params[2]))
+    bot_answer(
+        message,
+        NEW_USER_ADDED_TO_GROUP.format(
+            ' @'.join(members_usernames),
+            params[2]
+        )
+    )
 
 
 @bot.message_handler(commands=['rmuser'])
@@ -280,7 +290,7 @@ def send_welcome(message):
 def send_help(message):
     if anti_spam_on_group(message):
         return
-    bot_answer(message, AJUDA)
+    bot_answer(message, HELP)
 
 
 @bot.message_handler(commands=['link', 'links'])

@@ -1,5 +1,6 @@
 import datetime
 import pymongo
+from pymongo.errors import BulkWriteError
 
 
 class SpyManager():
@@ -33,6 +34,8 @@ class Spy():
     def __init__(self, username, collection):
         self.username = username
         self.spies = collection
+
+        self.bulk = self.spies.initialize_unordered_bulk_op()
 
     @property
     def _spy(self):
@@ -84,8 +87,11 @@ class Spy():
             {'$pull': {'groups': {"name": group_name}}}
         )
 
-    def add_member_to_group(self, member_username, group_name):
+    def add_members_to_group(self, members_username, group_name):
         found_group = None
+
+        if type(members_username) != list:
+            members_username = [members_username]
 
         for group in self.groups:
             if group['name'] == group_name:
@@ -93,14 +99,20 @@ class Spy():
                 break
 
         if found_group:
-            if member_username not in found_group['users']:
-                self.spies.find_one_and_update(
-                    {'$and': [
-                        {'username': self.username},
-                        {'groups.name': group_name}
-                    ]},
-                    {'$push': {'groups.$.users': member_username}}
-                )
+            new_members = [
+                member for member in members_username
+                if member not in found_group['users']
+            ]
+            for member in new_members:
+                self.bulk.find({'$and': [
+                    {'username': self.username},
+                    {'groups.name': group_name}
+                ]}).update({'$push': {'groups.$.users': member}})
+
+            try:
+                self.bulk.execute()
+            except BulkWriteError as bwe:
+                print(bwe.details)
         else:
             print('Group {} does not exist!'.format(group_name))
 

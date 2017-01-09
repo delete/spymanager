@@ -52,14 +52,14 @@ Members from *{0}* group:
 """
 
 NEW_USER_ADDED_TO_GROUP = """
-The user @{0} was added to *{1}* group!
+The user(s) @{0} was added to *{1}* group!
 """
 
 USER_REMOVED_FROM_GROUP = """
 The user @{0} was removed from *{1}* group!
 """
 
-AJUDA = """
+HELP = """
 /start   Welcome message
 /help    Get all commands
 /links   Some links
@@ -76,7 +76,8 @@ AJUDA = """
 /groups             List all groups
 
 - User commands:
-/adduser [user] [group]   Add user to a group
+/adduser [user1,user2,...] [group]   Add multiple users to a group
+(DO NOT USE SPACES TO SEPARATE THE USERS!)
 /rmuser [user] [group]    Remove a user from a group
 
 - Shortcuts

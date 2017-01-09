@@ -34,13 +34,11 @@ new_group = 'sports'
 spy.add_group(new_group)
 
 # Adding user to group
-member_username = 'mazulo_'
+member_mazulo = 'mazulo_'
+member_pinheiro = 'pinheirofellipe'
 group_to_add = 'devs'
-spy.add_member_to_group(member_username, group_to_add)
 
-member_username = 'pinheirofellipe'
-group_to_add = 'devs'
-spy.add_member_to_group(member_username, group_to_add)
+spy.add_members_to_group([member_mazulo, member_pinheiro], group_to_add)
 
 # Remove group
 spy.remove_group('sports')

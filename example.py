@@ -4,7 +4,7 @@ from src.imagesite import ImageSite
 
 
 # Database settings
-MONGO_URI = 'mongodb://database:27017/data'
+MONGO_URI = 'mongodb://localhost:27017/data'
 DATABASE_NAME = 'spies_database'
 COLLECTION_NAME = 'spies'
 

@@ -1,35 +1,24 @@
 import datetime
-import pymongo
+# import pymongo
 from pymongo.errors import BulkWriteError
+from . import Manager
 
 
-class SpyManager():
-    def __init__(self, database):
-        self.database = database
-
-        self.spies = self.database.collection
-
-    def add_spy(self, username):
-        newSpy = {
+class SpyManager(Manager):
+    def add(self, username):
+        self.newObj = {
             "username": username,
             "groups": [],
             "created": datetime.datetime.utcnow()
         }
+        super().add(username)
 
-        try:
-            self.spies.insert_one(newSpy)
-        except pymongo.errors.DuplicateKeyError:
-            print('Spy {} already exists!'.format(newSpy['username']))
-
-    def remove_spy(self, username):
-        self.spies.find_one_and_delete({"username": username})
-
-    def get_spy(self, username):
-        return Spy(username=username, collection=self.spies)
+    def get(self, username):
+        return Spy(username=username, collection=self.collection)
 
 
 class Spy():
-    """ Spy model that wrapper spy mongo object"""
+    """ Spy model that wrappers spy mongo object """
 
     def __init__(self, username, collection):
         self.username = username

@@ -1,0 +1,56 @@
+# Spies
+{
+	"spies": [{
+		"username": "",
+		"groups": [{
+			"name": "",
+			"users": ["", ""]
+		}, {
+			"name": "",
+			"users": ["", ""]
+		}],
+		"created": ""
+	}, {
+		"username": "",
+		"groups": [{
+			"name": "",
+			"users": ["", ""],
+			"images": [""]
+		}, {
+			"name": "",
+			"users": ["", ""]
+		}],
+		"created": ""
+	}]
+}
+
+# Images cache
+{
+	"pictures": [{
+		"username": "pinheirofellipe",
+		"images": ["imgUrl1", "imgUrl2"]
+	}, {
+		"username": "mazulo_",
+		"images": ["imgUrl1", "imgUrl2"]
+	}, {
+		"username": "ciclano",
+		"images": ["imgUrl1", "imgUrl2"]
+	}]
+}
+
+# Pub/sub
+{
+	"subscriptions": [{
+		"username": "pinheirofellipe",
+		"subscribers": [{
+			"spy": "spy1",
+			"group": "g1"
+		},
+		{
+		"username": "mazulo_",
+		"subscribers": [{
+			"spy": "spy1",
+			"group": "g1"
+		}]
+	}]
+}

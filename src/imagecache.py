@@ -34,14 +34,10 @@ class UserImageCache():
         return self._user is not None
 
     def add_images(self, images):
-        new_images = []
-
         if type(images) != list:
             images = [images]
 
-        for image in images:
-            if image not in self.images:
-                new_images.append(image)
+        new_images = [image for image in images if image not in self.images]
 
         if new_images:
             for image in new_images:

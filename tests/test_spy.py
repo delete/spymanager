@@ -22,6 +22,10 @@ spy_manager.remove(USERNAME)
 # Adding bot user
 spy_manager.add(USERNAME)
 
+all_spies = spy_manager.all()
+
+assert len(all_spies) == 1
+
 # Get created spy
 spy = spy_manager.get(USERNAME)
 

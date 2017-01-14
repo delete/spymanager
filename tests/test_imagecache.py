@@ -21,6 +21,10 @@ user_image_manager.remove(USERNAME)
 
 user_image_manager.add(USERNAME)
 
+all_user_images = user_image_manager.all()
+
+assert len(all_user_images) == 1
+
 user = user_image_manager.get(USERNAME)
 
 assert user.username == USERNAME

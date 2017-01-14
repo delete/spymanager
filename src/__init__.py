@@ -18,5 +18,9 @@ class Manager():
     def remove(self, username):
         self.collection.find_one_and_delete({"username": username})
 
+    def all(self):
+        cursor = self.collection.find()
+        return [document for document in cursor]
+
     def get(self, username):
         pass

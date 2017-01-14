@@ -21,6 +21,10 @@ subscriptions_manager.remove(USERNAME)
 
 subscriptions_manager.add(USERNAME)
 
+all_subscritions = subscriptions_manager.all()
+
+assert len(all_subscritions) == 1
+
 user = subscriptions_manager.get(USERNAME)
 
 assert user.username == USERNAME

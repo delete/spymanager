@@ -10,14 +10,16 @@ from src.database import MongoSetup
 from src.imagesite import ImageSite
 from src.subscriptions import SubscriptionsManager
 from src.myexceptions import AlreadyExistsOnDatabaseException
-
+from src.imagecache import UserImageCacheManager, ImageCacheHandler
+from src.flooder import Flooder
+from src.publisher import Publisher
 
 # Read API_KEY from .env file
 API_TOKEN = config('API_TOKEN')
 
 bot = telebot.TeleBot(API_TOKEN, threaded=True)
 
-# TODO - remove this duplicated code below ASAP
+# TODO - remove the duplicated code below ASAP
 
 # Database settings
 MONGO_URI = 'mongodb://database:27017/data'
@@ -36,6 +38,19 @@ mongo_subscriptions_client = MongoSetup(
 )
 mongo_subscriptions_client.create_index(field='username')
 subscriptions_manager = SubscriptionsManager(mongo_subscriptions_client)
+
+
+COLLECTION_NAME = 'images_cache'
+mongo_images_cache = MongoSetup(MONGO_URI, DATABASE_NAME, COLLECTION_NAME)
+mongo_images_cache.create_index(field='username')
+
+image_cache_manager = UserImageCacheManager(mongo_images_cache)
+image_cache_handler = ImageCacheHandler(image_cache_manager)
+
+site = ImageSite()
+publisher = Publisher(API_TOKEN)
+flood = Flooder(site, publisher, image_cache_handler)
+
 
 # Time that last advice was posted on group, to avoid spam
 last_advice = None
@@ -90,7 +105,12 @@ def create_subscriber_from_group(spy_user, group_name):
     }
 
 
+def isAdmin(message):
+    user = message.from_user.username
+    return user == 'pinheirofellipe'
+
 # ##### Telegram user functions
+
 
 @bot.message_handler(commands=['whoami'])
 def send_whoami(message):
@@ -268,8 +288,8 @@ def add_user(message):
 
     params = message.text.split()
 
-    if len(params) < 3:
-        bot_answer(message, 'You forgot some params!')
+    if len(params) != 3:
+        bot_answer(message, 'The params are wrong!')
         return
 
     members_usernames = params[1].split(',')
@@ -371,6 +391,23 @@ def send_link(message):
     if anti_spam_on_group(message):
         return
     bot_answer(message, LINKS)
+
+
+@bot.message_handler(commands=['updateall'])
+def update_all_images(message):
+    if anti_spam_on_group(message):
+        return
+
+    if not isAdmin(message):
+        bot_answer(message, 'You are not admin!')
+        return
+
+    bot_answer(message, 'Wait a minute boss... this can take some time.')
+
+    subscriptions = subscriptions_manager.all()
+    flood.flood_to(subscriptions)
+
+    bot_answer(message, 'Everything was sent boss!')
 
 
 @bot.message_handler(regexp="^\@.*")

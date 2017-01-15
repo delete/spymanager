@@ -8,7 +8,7 @@ from src.imagecache import UserImageCacheManager
 
 # Database settings
 DATABASE_NAME = 'spies_database'
-COLLECTION_NAME = 'subscriptions'
+COLLECTION_NAME = 'images_cache'
 mongo = create_database_connection(DATABASE_NAME, COLLECTION_NAME)
 
 # User to test
@@ -28,8 +28,6 @@ assert len(all_user_images) == 1
 user = user_image_manager.get(USERNAME)
 
 assert user.username == USERNAME
-
-assert user.exists() is True
 
 images = [
     'someURL1', 'someURL2', 'someURL3'

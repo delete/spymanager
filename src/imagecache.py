@@ -1,5 +1,6 @@
 from pymongo.errors import BulkWriteError
 from . import Manager
+from .myexceptions import AlreadyExistsOnDatabaseException
 
 
 class UserImageCacheManager(Manager):
@@ -30,9 +31,6 @@ class UserImageCache():
     def images(self):
         return self._user['images']
 
-    def exists(self):
-        return self._user is not None
-
     def add_images(self, images):
         if type(images) != list:
             images = [images]
@@ -53,7 +51,7 @@ class UserImageCache():
             print('Dont have new images')
 
     def remove_image(self, image):
-        if not self._isImageExists(image):
+        if not self.isImageExists(image):
             print('Image {} does not exist!'.format(image))
             return
 
@@ -66,5 +64,30 @@ class UserImageCache():
             }}
         )
 
-    def _isImageExists(self, image):
+    def isImageExists(self, image):
         return image in self.images
+
+
+class ImageCacheHandler():
+    def __init__(self, image_cache_manager):
+        self.image_cache_manager = image_cache_manager
+        self.image_cache = None
+
+    def get_or_create(self, username):
+        try:
+            self.image_cache_manager.add(username)
+        except AlreadyExistsOnDatabaseException:
+            # It is not a problem, go on!
+            pass
+        finally:
+            self.image_cache = self.image_cache_manager.get(username)
+
+    def get_the_news(self, user_images):
+        new_images = [
+            i for i in user_images
+            if not self.image_cache.isImageExists(i)
+        ]
+        return new_images
+
+    def add_the_images(self, user_images):
+        self.image_cache.add_images(user_images)

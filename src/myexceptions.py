@@ -8,3 +8,7 @@ class UserNotFoundException(Exception):
 
 class AlreadyExistsOnDatabaseException(Exception):
     pass
+
+
+class ChatIdOrTextCannotBeEmpty(Exception):
+    pass

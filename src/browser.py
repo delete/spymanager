@@ -11,9 +11,13 @@ class Browser():
     def set_url(self, url):
         self.url = url
 
+    def get(self):
+        return requests.get(self.url)
+
     # Return HTML text content
     def get_page_content(self):
-        return requests.get(self.url).text
+        page = self.get()
+        return page.text
 
     # Download content from URL and save with the given filename
     def save_as(self, filename):

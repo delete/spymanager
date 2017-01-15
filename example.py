@@ -10,6 +10,7 @@ COLLECTION_NAME = 'spies'
 
 # User to test
 USERNAME = 'pinheirofellipe'
+CHAT_ID = 123465
 
 mongo = MongoSetup(MONGO_URI, DATABASE_NAME, COLLECTION_NAME)
 mongo.create_index(field='username')
@@ -22,7 +23,7 @@ spy_manager.remove(USERNAME)
 
 # Adding bot user
 try:
-    spy_manager.add(USERNAME)
+    spy_manager.add(USERNAME, CHAT_ID)
 except AlreadyExistsOnDatabaseException as e:
     print('Spy {} already exists!'.format(USERNAME))
 

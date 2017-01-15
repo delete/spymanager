@@ -1,4 +1,4 @@
-from pymongo.errors import BulkWriteError
+from pymongo.errors import InvalidOperation
 from . import Manager
 
 
@@ -34,6 +34,9 @@ class Subscription():
         return self._user is not None
 
     def add_subscribers(self, subscribers):
+        if type(subscribers) != list:
+            subscribers = [subscribers]
+
         for subscriber in subscribers:
             if not self._is_subscriber_exists(subscriber):
                 self.bulk.find(
@@ -45,8 +48,8 @@ class Subscription():
                 print(msg.format(subscriber['spy'], subscriber['group']))
         try:
             self.bulk.execute()
-        except BulkWriteError as bwe:
-            print(bwe.details)
+        except InvalidOperation as e:
+            print(e)
 
     def remove_subscriber(self, subscriber):
         if not self._is_subscriber_exists(subscriber):

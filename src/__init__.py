@@ -1,6 +1,8 @@
 import pymongo
 from .myexceptions import AlreadyExistsOnDatabaseException
 
+TELEGRAM_URL = 'https://api.telegram.org/bot{token}/{method}?chat_id={chat_id}&text={text}'
+
 
 class Manager():
     """ Manage objects adding, removing and getting from database """

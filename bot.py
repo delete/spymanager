@@ -8,22 +8,34 @@ from src.messages import *
 from src.spy import SpyManager
 from src.database import MongoSetup
 from src.imagesite import ImageSite
+from src.subscriptions import SubscriptionsManager
+from src.myexceptions import AlreadyExistsOnDatabaseException
+
 
 # Read API_KEY from .env file
 API_TOKEN = config('API_TOKEN')
 
 bot = telebot.TeleBot(API_TOKEN, threaded=True)
 
+# TODO - remove this duplicated code below ASAP
+
 # Database settings
 MONGO_URI = 'mongodb://database:27017/data'
 DATABASE_NAME = 'spies_database'
+
 COLLECTION_NAME = 'spies'
+mongo_spies_client = MongoSetup(MONGO_URI, DATABASE_NAME, COLLECTION_NAME)
+mongo_spies_client.create_index(field='username')
 
-mongo = MongoSetup(MONGO_URI, DATABASE_NAME, COLLECTION_NAME)
-mongo.create_index(field='username')
+spy_manager = SpyManager(mongo_spies_client)
 
-spy_manager = SpyManager(mongo)
 
+COLLECTION_NAME = 'subscriptions'
+mongo_subscriptions_client = MongoSetup(
+    MONGO_URI, DATABASE_NAME, COLLECTION_NAME
+)
+mongo_subscriptions_client.create_index(field='username')
+subscriptions_manager = SubscriptionsManager(mongo_subscriptions_client)
 
 # Time that last advice was posted on group, to avoid spam
 last_advice = None
@@ -63,11 +75,19 @@ def anti_spam_on_group(message):
 
 
 def registered_spy(spy_username):
-    spy = spy_manager.get_spy(spy_username)
+    spy = spy_manager.get(spy_username)
     if spy.exists():
         return spy
 
     return None
+
+
+def create_subscriber_from_group(spy_user, group_name):
+    return {
+        'spy': spy_user.username,
+        'group': group_name,
+        'chat_id': spy_user.chat_id
+    }
 
 
 # ##### Telegram user functions
@@ -85,9 +105,12 @@ def register_spy(message):
         return
 
     username = message.from_user.username
-    spy_manager.add_spy(username)
-
-    bot_answer(message, REGISTERED)
+    chat_id = message.chat.id
+    try:
+        spy_manager.add(username, chat_id)
+        bot_answer(message, REGISTERED)
+    except AlreadyExistsOnDatabaseException:
+        bot_answer(message, ALREADY_REGISTER.format(username))
 
 
 @bot.message_handler(commands=['unregister'])
@@ -96,7 +119,7 @@ def unregister_spy(message):
         return
 
     username = message.from_user.username
-    spy_manager.remove_spy(username)
+    spy_manager.remove(username)
 
     bot_answer(message, UNREGISTERED)
 
@@ -114,15 +137,21 @@ def add_group(message):
 
     if not spy_user:
         bot_answer(message, REGISTER_FIRST)
+        return
 
     params = message.text.split()
 
     if len(params) < 2:
         bot_answer(message, 'You forgot the group name!')
+        return
 
-    spy_user.add_group(group_name=params[1])
+    group_name = params[1]
 
-    bot_answer(message, NEW_GROUP_ADDED.format(params[1]))
+    try:
+        spy_user.add_group(group_name=group_name)
+        bot_answer(message, NEW_GROUP_ADDED.format(group_name))
+    except AlreadyExistsOnDatabaseException:
+        bot_answer(message, 'Group {} already exists!'.format(group_name))
 
 
 @bot.message_handler(commands=['rmgroup'])
@@ -136,15 +165,24 @@ def remove_group(message):
 
     if not spy_user:
         bot_answer(message, REGISTER_FIRST)
+        return
 
     params = message.text.split()
+    group_name = params[1]
 
     if len(params) < 2:
         bot_answer(message, 'You forgot the group name!')
+        return
 
-    spy_user.remove_group(group_name=params[1])
+    # Must remove all members first, to unsubscriber them
+    members_username = spy_user.members_from_group(group_name)
 
-    bot_answer(message, GROUP_REMOVED.format(params[1]))
+    for member_username in members_username:
+        remove_user_from_group(spy_user, member_username, group_name)
+
+    spy_user.remove_group(group_name=group_name)
+
+    bot_answer(message, GROUP_REMOVED.format(group_name))
 
 
 @bot.message_handler(commands=['groups'])
@@ -158,6 +196,7 @@ def list_groups(message):
 
     if not spy_user:
         bot_answer(message, REGISTER_FIRST)
+        return
 
     markup = types.ReplyKeyboardMarkup(row_width=4, one_time_keyboard=True)
 
@@ -189,6 +228,7 @@ def members_from_group(message):
 
     if not spy_user:
         bot_answer(message, REGISTER_FIRST)
+        return
 
     markup = types.ReplyKeyboardMarkup(row_width=4, one_time_keyboard=True)
 
@@ -224,6 +264,7 @@ def add_user(message):
 
     if not spy_user:
         bot_answer(message, REGISTER_FIRST)
+        return
 
     params = message.text.split()
 
@@ -232,18 +273,32 @@ def add_user(message):
         return
 
     members_usernames = params[1].split(',')
+    group_name = params[2]
 
     spy_user.add_members_to_group(
-        members_username=members_usernames, group_name=params[2]
+        members_username=members_usernames, group_name=group_name
     )
 
-    bot_answer(
-        message,
-        NEW_USER_ADDED_TO_GROUP.format(
-            ' @'.join(members_usernames),
-            params[2]
+    subscriber = create_subscriber_from_group(spy_user, group_name)
+
+    for member in members_usernames:
+        try:
+            subscriptions_manager.add(member)
+        except AlreadyExistsOnDatabaseException:
+            continue
+
+    for member in members_usernames:
+        s = subscriptions_manager.get(member)
+        s.add_subscribers(subscriber)
+
+    if members_usernames:
+        bot_answer(
+            message,
+            NEW_USER_ADDED_TO_GROUP.format(
+                ' @'.join(members_usernames),
+                params[2]
+            )
         )
-    )
 
 
 @bot.message_handler(commands=['rmuser'])
@@ -257,17 +312,35 @@ def remove_user(message):
 
     if not spy_user:
         bot_answer(message, REGISTER_FIRST)
+        return
 
     params = message.text.split()
 
     if len(params) < 3:
         bot_answer(message, 'You forgot some params!')
+        return
 
-    spy_user.remove_member_from_group(
-        member_username=params[1], group_name=params[2]
-    )
+    member_username = params[1]
+    group_name = params[2]
+
+    remove_user_from_group(spy_user, member_username, group_name)
 
     bot_answer(message, USER_REMOVED_FROM_GROUP.format(params[1], params[2]))
+
+
+def remove_user_from_group(spy_user, member_username, group_name):
+    spy_user.remove_member_from_group(
+        member_username=member_username, group_name=group_name
+    )
+
+    subscriber = create_subscriber_from_group(spy_user, group_name)
+
+    s = subscriptions_manager.get(member_username)
+    s.remove_subscriber(subscriber)
+
+    # Must remove the subscription, to do not get his images any longer
+    if not s.subscribers:
+        subscriptions_manager.remove(member_username)
 
 
 # ##### Send functions
@@ -311,6 +384,7 @@ def send_user_photos(message):
 
     if not spy_user:
         bot_answer(message, REGISTER_FIRST)
+        return
 
     username = message.text.split('@')[1]
 

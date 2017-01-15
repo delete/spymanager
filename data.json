@@ -9,7 +9,8 @@
 			"name": "",
 			"users": ["", ""]
 		}],
-		"created": ""
+		"created": "",
+		"chat_id": ""
 	}, {
 		"username": "",
 		"groups": [{
@@ -20,7 +21,8 @@
 			"name": "",
 			"users": ["", ""]
 		}],
-		"created": ""
+		"created": "",
+		"chat_id": ""
 	}]
 }
 
@@ -44,13 +46,15 @@
 		"username": "pinheirofellipe",
 		"subscribers": [{
 			"spy": "spy1",
-			"group": "g1"
+			"group": "g1",
+			"chat_id": ""
 		},
 		{
 		"username": "mazulo_",
 		"subscribers": [{
 			"spy": "spy1",
-			"group": "g1"
+			"group": "g1",
+			"chat_id": ""
 		}]
 	}]
 }

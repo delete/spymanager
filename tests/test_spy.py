@@ -12,6 +12,7 @@ mongo = create_database_connection(DATABASE_NAME, COLLECTION_NAME)
 
 # User to test
 USERNAME = 'pinheirofellipe'
+CHAT_ID = 123456
 
 # Spy actions
 spy_manager = SpyManager(mongo)
@@ -20,7 +21,7 @@ spy_manager = SpyManager(mongo)
 spy_manager.remove(USERNAME)
 
 # Adding bot user
-spy_manager.add(USERNAME)
+spy_manager.add(USERNAME, CHAT_ID)
 
 all_spies = spy_manager.all()
 

@@ -1,15 +1,16 @@
 import datetime
-# import pymongo
-from pymongo.errors import BulkWriteError
+from pymongo.errors import InvalidOperation
 from . import Manager
+from .myexceptions import AlreadyExistsOnDatabaseException
 
 
 class SpyManager(Manager):
-    def add(self, username):
+    def add(self, username, chat_id):
         self.newObj = {
             "username": username,
             "groups": [],
-            "created": datetime.datetime.utcnow()
+            "created": datetime.datetime.utcnow(),
+            "chat_id": chat_id
         }
         super().add(username)
 
@@ -33,6 +34,10 @@ class Spy():
     @property
     def groups(self):
         return self._spy['groups']
+
+    @property
+    def chat_id(self):
+        return self._spy['chat_id']
 
     @property
     def groups_names(self):
@@ -61,7 +66,7 @@ class Spy():
                 {'$push': {'groups': newGroup}}
             )
         else:
-            print('Group {} already exists!'.format(newGroup['name']))
+            raise AlreadyExistsOnDatabaseException
 
     def remove_group(self, group_name):
         if not self._isGroupExists(group_name):
@@ -100,8 +105,8 @@ class Spy():
 
             try:
                 self.bulk.execute()
-            except BulkWriteError as bwe:
-                print(bwe.details)
+            except InvalidOperation as e:
+                print(e)
         else:
             print('Group {} does not exist!'.format(group_name))
 

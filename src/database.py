@@ -8,8 +8,8 @@ class MongoSetup():
         self.collectionName = collectionName
 
         self._create_client()
-        self._db = self.client.databaseName
-        self.collection = self._db.collectionName
+        self._db = self.client[self.databaseName]
+        self.collection = self._db.get_collection(name=self.collectionName)
 
     def _create_client(self):
         self.client = pymongo.MongoClient(self.uri)

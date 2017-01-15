@@ -34,10 +34,12 @@ assert user.exists() is True
 subscribers = [
     {
         "spy": "spy1",
-        "group": "g1"
+        "group": "g1",
+        "chat_id": 123456
     }, {
         "spy": "spy2",
-        "group": "g1"
+        "group": "g1",
+        "chat_id": 654321
     }
 ]
 
@@ -47,7 +49,8 @@ assert len(user.subscribers) == 2
 
 subscriber_to_remove = {
     "spy": "spy1",
-    "group": "g1"
+    "group": "g1",
+    "chat_id": 123456
 }
 
 user.remove_subscriber(subscriber_to_remove)

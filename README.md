@@ -22,7 +22,7 @@ ADMIN_ID=YOUR_ID
 
 `pip install -r requeriments.txt`
 
-### Applictaion
+### Application
 
 **MongoDB Server**
 

@@ -1,7 +1,7 @@
 from src.database import MongoSetup
 from src.spy import SpyManager
 from src.imagesite import ImageSite
-
+from src.myexceptions import AlreadyExistsOnDatabaseException
 
 # Database settings
 MONGO_URI = 'mongodb://localhost:27017/data'
@@ -10,6 +10,7 @@ COLLECTION_NAME = 'spies'
 
 # User to test
 USERNAME = 'pinheirofellipe'
+CHAT_ID = 123465
 
 mongo = MongoSetup(MONGO_URI, DATABASE_NAME, COLLECTION_NAME)
 mongo.create_index(field='username')
@@ -18,13 +19,16 @@ mongo.create_index(field='username')
 spy_manager = SpyManager(mongo)
 
 # Remove if it's exists
-spy_manager.remove_spy(USERNAME)
+spy_manager.remove(USERNAME)
 
 # Adding bot user
-spy_manager.add_spy(USERNAME)
+try:
+    spy_manager.add(USERNAME, CHAT_ID)
+except AlreadyExistsOnDatabaseException as e:
+    print('Spy {} already exists!'.format(USERNAME))
 
 # Get created spy
-spy = spy_manager.get_spy(USERNAME)
+spy = spy_manager.get(USERNAME)
 
 # Adding groups
 new_group = 'devs'

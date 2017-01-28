@@ -10,11 +10,15 @@ class User():
         self.username = username
         self._data = self._extract_data_from_html(html_page)
 
-        self.images = self._get_images(self._data)
+        self._images = self._get_images(self._data)
         self._get_user_informations(self._data)
 
     def __repr__(self):
         return '{}'.format(self.username)
+
+    @property
+    def images(self):
+        return [self._images[image]['src'] for image in self._images]
 
     def _extract_data_from_html(self, html_content):
         json_text = self._extract_json_data_from_html(html_content)
@@ -63,5 +67,5 @@ class User():
         self.is_private = user_data['follows_viewer']
 
     def print_images_urls(self):
-        for image in self.images:
-            print(self.images[image]['src'])
+        for image in self._images:
+            print(self._images[image]['src'])

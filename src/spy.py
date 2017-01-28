@@ -1,35 +1,25 @@
 import datetime
-import pymongo
-from pymongo.errors import BulkWriteError
+from pymongo.errors import InvalidOperation
+from . import Manager
+from .myexceptions import AlreadyExistsOnDatabaseException
 
 
-class SpyManager():
-    def __init__(self, database):
-        self.database = database
-
-        self.spies = self.database.collection
-
-    def add_spy(self, username):
-        newSpy = {
+class SpyManager(Manager):
+    def add(self, username, chat_id):
+        self.newObj = {
             "username": username,
             "groups": [],
-            "created": datetime.datetime.utcnow()
+            "created": datetime.datetime.utcnow(),
+            "chat_id": chat_id
         }
+        super().add(username)
 
-        try:
-            self.spies.insert_one(newSpy)
-        except pymongo.errors.DuplicateKeyError:
-            print('Spy {} already exists!'.format(newSpy['username']))
-
-    def remove_spy(self, username):
-        self.spies.find_one_and_delete({"username": username})
-
-    def get_spy(self, username):
-        return Spy(username=username, collection=self.spies)
+    def get(self, username):
+        return Spy(username=username, collection=self.collection)
 
 
 class Spy():
-    """ Spy model that wrapper spy mongo object"""
+    """ Spy model that wrappers spy mongo object """
 
     def __init__(self, username, collection):
         self.username = username
@@ -44,6 +34,10 @@ class Spy():
     @property
     def groups(self):
         return self._spy['groups']
+
+    @property
+    def chat_id(self):
+        return self._spy['chat_id']
 
     @property
     def groups_names(self):
@@ -72,7 +66,7 @@ class Spy():
                 {'$push': {'groups': newGroup}}
             )
         else:
-            print('Group {} already exists!'.format(newGroup['name']))
+            raise AlreadyExistsOnDatabaseException
 
     def remove_group(self, group_name):
         if not self._isGroupExists(group_name):
@@ -111,8 +105,8 @@ class Spy():
 
             try:
                 self.bulk.execute()
-            except BulkWriteError as bwe:
-                print(bwe.details)
+            except InvalidOperation as e:
+                print(e)
         else:
             print('Group {} does not exist!'.format(group_name))
 

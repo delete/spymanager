@@ -7,7 +7,10 @@ Create and manager groups of users from ImageSite getting the latest (12 till no
 
 Create a `.env` file on the project root folder:
 
-`API_TOKEN=MY_TELEGRAM_API`
+```sh
+API_TOKEN=MY_TELEGRAM_API
+ADMIN_ID=YOUR_ID
+```
 
 ## Run
 

@@ -16,6 +16,7 @@ from src.publisher import Publisher
 
 # Read API_KEY from .env file
 API_TOKEN = config('API_TOKEN')
+ADMIN_ID = config('ADMIN_ID')
 
 bot = telebot.TeleBot(API_TOKEN, threaded=True)
 
@@ -89,7 +90,7 @@ def anti_spam_on_group(message):
         return False
 
 
-def registered_spy(spy_username):
+def get_spy(spy_username):
     spy = spy_manager.get(spy_username)
     if spy.exists():
         return spy
@@ -105,9 +106,16 @@ def create_subscriber_from_group(spy_user, group_name):
     }
 
 
+def isAllowed(spy_user):
+    if not spy_user:
+        bot_answer(message, REGISTER_FIRST)
+        return False
+    return True
+
+
 def isAdmin(message):
-    user = message.from_user.username
-    return user == 'pinheirofellipe'
+    user_id = message.from_user.id
+    return int(user_id) == int(ADMIN_ID)
 
 # ##### Telegram user functions
 
@@ -152,15 +160,11 @@ def add_group(message):
         return
 
     username = message.from_user.username
-
-    spy_user = registered_spy(username)
-
-    if not spy_user:
-        bot_answer(message, REGISTER_FIRST)
+    spy_user = get_spy(username)
+    if not isAllowed(spy_user):
         return
 
     params = message.text.split()
-
     if len(params) < 2:
         bot_answer(message, 'You forgot the group name!')
         return
@@ -180,19 +184,16 @@ def remove_group(message):
         return
 
     username = message.from_user.username
-
-    spy_user = registered_spy(username)
-
-    if not spy_user:
-        bot_answer(message, REGISTER_FIRST)
+    spy_user = get_spy(username)
+    if not isAllowed(spy_user):
         return
 
     params = message.text.split()
-    group_name = params[1]
-
     if len(params) < 2:
         bot_answer(message, 'You forgot the group name!')
         return
+
+    group_name = params[1]
 
     # Must remove all members first, to unsubscriber them
     members_username = spy_user.members_from_group(group_name)
@@ -211,11 +212,8 @@ def list_groups(message):
         return
 
     username = message.from_user.username
-
-    spy_user = registered_spy(username)
-
-    if not spy_user:
-        bot_answer(message, REGISTER_FIRST)
+    spy_user = get_spy(username)
+    if not isAllowed(spy_user):
         return
 
     markup = types.ReplyKeyboardMarkup(row_width=4, one_time_keyboard=True)
@@ -243,11 +241,8 @@ def members_from_group(message):
         return
 
     username = message.from_user.username
-
-    spy_user = registered_spy(username)
-
-    if not spy_user:
-        bot_answer(message, REGISTER_FIRST)
+    spy_user = get_spy(username)
+    if not isAllowed(spy_user):
         return
 
     markup = types.ReplyKeyboardMarkup(row_width=4, one_time_keyboard=True)
@@ -279,15 +274,11 @@ def add_user(message):
         return
 
     username = message.from_user.username
-
-    spy_user = registered_spy(username)
-
-    if not spy_user:
-        bot_answer(message, REGISTER_FIRST)
+    spy_user = get_spy(username)
+    if not isAllowed(spy_user):
         return
 
     params = message.text.split()
-
     if len(params) != 3:
         bot_answer(message, 'The params are wrong!')
         return
@@ -327,15 +318,11 @@ def remove_user(message):
         return
 
     username = message.from_user.username
-
-    spy_user = registered_spy(username)
-
-    if not spy_user:
-        bot_answer(message, REGISTER_FIRST)
+    spy_user = get_spy(username)
+    if not isAllowed(spy_user):
         return
 
     params = message.text.split()
-
     if len(params) < 3:
         bot_answer(message, 'You forgot some params!')
         return
@@ -372,8 +359,7 @@ def send_welcome(message):
     bot_answer(message, ABOUT.format(nome(message)))
 
     username = message.from_user.username
-
-    spy_user = registered_spy(username)
+    spy_user = get_spy(username)
 
     if spy_user:
         bot_answer(message, ALREADY_REGISTER.format(username))
@@ -399,7 +385,7 @@ def update_all_images(message):
         return
 
     if not isAdmin(message):
-        bot_answer(message, 'You are not admin!')
+        bot_answer(message, 'You are not the big boss!')
         return
 
     bot_answer(message, 'Wait a minute boss... this can take some time.')
@@ -416,11 +402,8 @@ def send_user_photos(message):
         return
 
     username = message.from_user.username
-
-    spy_user = registered_spy(username)
-
-    if not spy_user:
-        bot_answer(message, REGISTER_FIRST)
+    spy_user = get_spy(username)
+    if not isAllowed(spy_user):
         return
 
     username = message.text.split('@')[1]

@@ -71,14 +71,14 @@ HELP = """
 /whoami     Informations about the spy
 
 - Group commands:
-/addgroup [group]   Create a new group
-/rmgroup [group]    Remove an existing group
-/groups             List all groups
+/addgroup   Create a new group
+/rmgroup    Remove an existing group
+/groups     List all groups
 
 - User commands:
-/adduser [user1,user2,...] [group]   Add multiple users to a group
-(DO NOT USE SPACES TO SEPARATE THE USERS!)
-/rmuser [user] [group]    Remove a user from a group
+/adduser    Add multiple users to a group
+(USE COMMA TO ADD MORE THAN ONE USERS)
+/rmuser     Remove a user from a group
 
 - Shortcuts
 Already know the group name and wanna list the members?
@@ -93,11 +93,11 @@ Telegram:
 https://telegram.me/@SpyList_bot
 
 GitHub:
-https://github.com/delete/spylist
+https://github.com/delete/spymanager
 """
 
 START = """
-Hey {0}, I'm the SpyList bot.
+Hey {0}, I'm the SpyManager bot.
 
 I will help you to manage your users' groups.
 

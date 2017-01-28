@@ -117,6 +117,23 @@ def isAdmin(message):
     user_id = message.from_user.id
     return int(user_id) == int(ADMIN_ID)
 
+
+def question(message, question_message, callback):
+    if anti_spam_on_group(message):
+        return
+
+    username = message.from_user.username
+    spy_user = get_spy(username)
+    if not isAllowed(spy_user):
+        return
+
+    markup = types.ForceReply(selective=True)
+    replied_message = bot.send_message(
+        message.chat.id, question_message, reply_markup=markup
+    )
+
+    bot.register_next_step_handler(replied_message, callback)
+
 # ##### Telegram user functions
 
 
@@ -156,54 +173,48 @@ def unregister_spy(message):
 
 @bot.message_handler(commands=['addgroup'])
 def add_group(message):
-    if anti_spam_on_group(message):
-        return
+    def add_user_to_group(replied_message):
+        group_name = replied_message.text
+        spy_user = get_spy(replied_message.from_user.username)
 
-    username = message.from_user.username
-    spy_user = get_spy(username)
-    if not isAllowed(spy_user):
-        return
+        if not group_name:
+            bot_answer(message, 'You forgot the group name!')
+            return
 
-    params = message.text.split()
-    if len(params) < 2:
-        bot_answer(message, 'You forgot the group name!')
-        return
+        try:
+            spy_user.add_group(group_name=group_name)
+            bot_answer(replied_message, NEW_GROUP_ADDED.format(group_name))
+        except AlreadyExistsOnDatabaseException:
+            bot_answer(
+                replied_message, 'Group {} already exists!'.format(group_name)
+            )
 
-    group_name = params[1]
+    question_message = "What's the group name?"
+    callback = add_user_to_group
 
-    try:
-        spy_user.add_group(group_name=group_name)
-        bot_answer(message, NEW_GROUP_ADDED.format(group_name))
-    except AlreadyExistsOnDatabaseException:
-        bot_answer(message, 'Group {} already exists!'.format(group_name))
+    question(message, question_message, callback)
 
 
 @bot.message_handler(commands=['rmgroup'])
 def remove_group(message):
-    if anti_spam_on_group(message):
-        return
+    def _remove_group(replied_message):
+        group_name = replied_message.text
+        spy_user = get_spy(replied_message.from_user.username)
 
-    username = message.from_user.username
-    spy_user = get_spy(username)
-    if not isAllowed(spy_user):
-        return
+        # Must remove all members first, to unsubscriber them
+        members_username = spy_user.members_from_group(group_name)
 
-    params = message.text.split()
-    if len(params) < 2:
-        bot_answer(message, 'You forgot the group name!')
-        return
+        for member_username in members_username:
+            remove_user_from_group(spy_user, member_username, group_name)
 
-    group_name = params[1]
+        spy_user.remove_group(group_name=group_name)
 
-    # Must remove all members first, to unsubscriber them
-    members_username = spy_user.members_from_group(group_name)
+        bot_answer(message, GROUP_REMOVED.format(group_name))
 
-    for member_username in members_username:
-        remove_user_from_group(spy_user, member_username, group_name)
+    question_message = "What's the group name?"
+    callback = _remove_group
 
-    spy_user.remove_group(group_name=group_name)
-
-    bot_answer(message, GROUP_REMOVED.format(group_name))
+    question(message, question_message, callback)
 
 
 @bot.message_handler(commands=['groups'])
@@ -267,72 +278,81 @@ def members_from_group(message):
 
 
 # ##### Users functions
+group_name = ''
+
 
 @bot.message_handler(commands=['adduser'])
 def add_user(message):
-    if anti_spam_on_group(message):
-        return
+    def add_users_to_group(replied_message):
+        members_usernames = replied_message.text.split(',')
+        spy_user = get_spy(replied_message.from_user.username)
 
-    username = message.from_user.username
-    spy_user = get_spy(username)
-    if not isAllowed(spy_user):
-        return
-
-    params = message.text.split()
-    if len(params) != 3:
-        bot_answer(message, 'The params are wrong!')
-        return
-
-    members_usernames = params[1].split(',')
-    group_name = params[2]
-
-    spy_user.add_members_to_group(
-        members_username=members_usernames, group_name=group_name
-    )
-
-    subscriber = create_subscriber_from_group(spy_user, group_name)
-
-    for member in members_usernames:
-        try:
-            subscriptions_manager.add(member)
-        except AlreadyExistsOnDatabaseException:
-            continue
-
-    for member in members_usernames:
-        s = subscriptions_manager.get(member)
-        s.add_subscribers(subscriber)
-
-    if members_usernames:
-        bot_answer(
-            message,
-            NEW_USER_ADDED_TO_GROUP.format(
-                ' @'.join(members_usernames),
-                params[2]
-            )
+        spy_user.add_members_to_group(
+            members_username=members_usernames, group_name=group_name
         )
+
+        subscriber = create_subscriber_from_group(spy_user, group_name)
+
+        for member in members_usernames:
+            try:
+                subscriptions_manager.add(member)
+            except AlreadyExistsOnDatabaseException:
+                continue
+
+        for member in members_usernames:
+            s = subscriptions_manager.get(member)
+            s.add_subscribers(subscriber)
+
+        if members_usernames:
+            bot_answer(
+                message,
+                NEW_USER_ADDED_TO_GROUP.format(
+                    ' @'.join(members_usernames),
+                    group_name
+                )
+            )
+
+    def get_group_name(replied_message):
+        global group_name
+        group_name = replied_message.text
+
+        question_message = "Who do you wanna spy on?"
+        callback = add_users_to_group
+
+        question(message, question_message, callback)
+
+    question_message = "What's the GROUP name?"
+    callback = get_group_name
+
+    question(message, question_message, callback)
 
 
 @bot.message_handler(commands=['rmuser'])
 def remove_user(message):
-    if anti_spam_on_group(message):
-        return
+    def _remove_user(replied_message):
+        member_username = replied_message.text.split(',')
+        spy_user = get_spy(replied_message.from_user.username)
 
-    username = message.from_user.username
-    spy_user = get_spy(username)
-    if not isAllowed(spy_user):
-        return
+        remove_user_from_group(spy_user, member_username, group_name)
 
-    params = message.text.split()
-    if len(params) < 3:
-        bot_answer(message, 'You forgot some params!')
-        return
+        bot_answer(
+            message,
+            USER_REMOVED_FROM_GROUP.format(member_username, group_name)
+        )
 
-    member_username = params[1]
-    group_name = params[2]
+    def get_group_name(replied_message):
+        global group_name
+        group_name = replied_message.text
 
-    remove_user_from_group(spy_user, member_username, group_name)
+        question_message = "Who do you wanna remove?"
+        callback = _remove_user
 
-    bot_answer(message, USER_REMOVED_FROM_GROUP.format(params[1], params[2]))
+        question(message, question_message, callback)
+
+    question_message = "What's the GROUP name?"
+    callback = get_group_name
+
+    question(message, question_message, callback)
 
 
 def remove_user_from_group(spy_user, member_username, group_name):
@@ -412,7 +432,7 @@ def send_user_photos(message):
     user = image_site.get_user(username)
 
     for image in user.images:
-        bot_answer(message, user.images[image]['src'])
+        bot_answer(message, image)
 
 
 _logger = telebot.logger

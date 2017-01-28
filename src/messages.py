@@ -73,7 +73,8 @@ HELP = """
 - Group commands:
 /addgroup   Create a new group
 /rmgroup    Remove an existing group
-/groups     List all groups
+/groups     List all groups name
+/updategroup Get the new photos from a group
 
 - User commands:
 /adduser    Add multiple users to a group
@@ -81,7 +82,7 @@ HELP = """
 /rmuser     Remove a user from a group
 
 - Shortcuts
-Already know the group name and wanna list the members?
+Already know the group name and wanna get the new photos?
 Use: $GROUP_NAME
 
 Wanna get images from a user?

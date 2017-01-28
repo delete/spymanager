@@ -227,6 +227,25 @@ def list_groups(message):
     if not isAllowed(message, spy_user):
         return
 
+    if len(spy_user.groups_names) == 0:
+        bot_answer(message, 'There is no group to spy yet!')
+        return
+
+    bot_answer(message, 'You are spying these groups:')
+    for group in spy_user.groups_names:
+        bot_answer(message, group)
+
+
+@bot.message_handler(commands=['updategroup'])
+def list_groups_to_update_images(message):
+    if anti_spam_on_group(message):
+        return
+
+    username = message.from_user.username
+    spy_user = get_spy(username)
+    if not isAllowed(message, spy_user):
+        return
+
     markup = types.ReplyKeyboardMarkup(row_width=4, one_time_keyboard=True)
 
     groups_names = []
@@ -238,16 +257,13 @@ def list_groups(message):
     for group in spy_user.groups_names:
         groups_names.append(types.KeyboardButton('${}'.format(group)))
 
-    if len(groups_names) == 0:
-        bot_answer(message, 'No group created!')
-
     markup.add(*groups_names)
     chat_id = destiny(message)
     bot.send_message(chat_id, REGISTERED_GROUPS, reply_markup=markup)
 
 
 @bot.message_handler(regexp="^\$.*")
-def members_from_group(message):
+def update_images_from_group(message):
     if anti_spam_on_group(message):
         return
 
@@ -256,25 +272,14 @@ def members_from_group(message):
     if not isAllowed(message, spy_user):
         return
 
-    markup = types.ReplyKeyboardMarkup(row_width=4, one_time_keyboard=True)
-
     group_name = message.text.split('$')[1]
 
-    members = spy_user.members_from_group(group_name)
+    bot_answer(message, 'Wait a minute spy... this can take some time.')
 
-    members_names = []
-    for member in members:
-            members_names.append(types.KeyboardButton('@{}'.format(member)))
+    subscriptions = subscriptions_manager.filterByGroup(spy_user, group_name)
+    flood.flood_to(subscriptions)
 
-    if len(members_names) == 0:
-        bot_answer(message, 'No members at this group!')
-        return
-
-    markup.add(*members_names)
-    chat_id = destiny(message)
-    bot.send_message(
-        chat_id, MEMBERS_GROUPS.format(group_name), reply_markup=markup
-    )
+    bot_answer(message, 'Everything was sent spy!')
 
 
 # ##### Users functions

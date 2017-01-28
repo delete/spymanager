@@ -13,6 +13,14 @@ class SubscriptionsManager(Manager):
     def get(self, username):
         return Subscription(username=username, collection=self.collection)
 
+    def filterByGroup(self, spy_user, group_name):
+        subscriptions = self.collection.find(
+            {'$and': [
+                {'subscribers.spy': spy_user.username},
+                {'subscribers.group': group_name}
+            ]})
+        return subscriptions
+
 
 class Subscription():
 

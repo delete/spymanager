@@ -106,7 +106,7 @@ def create_subscriber_from_group(spy_user, group_name):
     }
 
 
-def isAllowed(spy_user):
+def isAllowed(message, spy_user):
     if not spy_user:
         bot_answer(message, REGISTER_FIRST)
         return False
@@ -124,7 +124,7 @@ def question(message, question_message, callback):
 
     username = message.from_user.username
     spy_user = get_spy(username)
-    if not isAllowed(spy_user):
+    if not isAllowed(message, spy_user):
         return
 
     markup = types.ForceReply(selective=True)
@@ -224,7 +224,7 @@ def list_groups(message):
 
     username = message.from_user.username
     spy_user = get_spy(username)
-    if not isAllowed(spy_user):
+    if not isAllowed(message, spy_user):
         return
 
     markup = types.ReplyKeyboardMarkup(row_width=4, one_time_keyboard=True)
@@ -253,7 +253,7 @@ def members_from_group(message):
 
     username = message.from_user.username
     spy_user = get_spy(username)
-    if not isAllowed(spy_user):
+    if not isAllowed(message, spy_user):
         return
 
     markup = types.ReplyKeyboardMarkup(row_width=4, one_time_keyboard=True)
@@ -423,7 +423,7 @@ def send_user_photos(message):
 
     username = message.from_user.username
     spy_user = get_spy(username)
-    if not isAllowed(spy_user):
+    if not isAllowed(message, spy_user):
         return
 
     username = message.text.split('@')[1]

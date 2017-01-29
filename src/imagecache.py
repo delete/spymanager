@@ -21,7 +21,7 @@ class UserImageCache():
         self.username = username
         self.images_cache = collection
 
-        self.bulk = self.images_cache.initialize_unordered_bulk_op()
+        self.bulk = self.images_cache.initialize_ordered_bulk_op()
 
     @property
     def _user(self):

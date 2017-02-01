@@ -236,6 +236,27 @@ def list_groups(message):
         bot_answer(message, group)
 
 
+@bot.message_handler(commands=['groupusers'])
+def list_group_members(message):
+    def members_from_group(replied_message):
+        group_name = replied_message.text
+        spy_user = get_spy(replied_message.from_user.username)
+
+        if not group_name:
+            bot_answer(message, 'You forgot the group name!')
+            return
+
+        members_username = spy_user.members_from_group(group_name=group_name)
+        bot_answer(message, 'Users from {} group:'.format(group_name))
+        for member in members_username:
+            bot_answer(message, member)
+
+    question_message = "What's the group name?"
+    callback = members_from_group
+
+    question(message, question_message, callback)
+
+
 @bot.message_handler(commands=['updategroup'])
 def list_groups_to_update_images(message):
     if anti_spam_on_group(message):
@@ -272,14 +293,20 @@ def update_images_from_group(message):
     if not isAllowed(message, spy_user):
         return
 
+    who = 'spy'
+    if isAdmin(message):
+        who = 'boss'
+
     group_name = message.text.split('$')[1]
 
-    bot_answer(message, 'Wait a minute spy... this can take some time.')
+    bot_answer(
+        message, 'Wait a minute {}... this can take some time.'.format(who)
+    )
 
     subscriptions = subscriptions_manager.filterByGroup(spy_user, group_name)
     flood.flood_to(subscriptions)
 
-    bot_answer(message, 'Everything was sent spy!')
+    bot_answer(message, 'Everything was sent {}!'.format(who))
 
 
 # ##### Users functions

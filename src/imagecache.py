@@ -1,4 +1,4 @@
-from pymongo.errors import BulkWriteError
+from pymongo import UpdateOne
 from . import Manager
 from .myexceptions import AlreadyExistsOnDatabaseException
 
@@ -20,12 +20,7 @@ class UserImageCache():
     def __init__(self, username, collection):
         self.username = username
         self.images_cache = collection
-
-        self.bulk = self.images_cache.initialize_ordered_bulk_op()
-
-    @property
-    def _user(self):
-        return self.images_cache.find_one({"username": self.username})
+        self._user = self.images_cache.find_one({"username": self.username})
 
     @property
     def images(self):
@@ -38,17 +33,21 @@ class UserImageCache():
         new_images = [image for image in images if image not in self.images]
 
         if new_images:
-            for image in new_images:
-                self.bulk.find(
-                    {'username': self.username}
-                ).update({'$push': {'images': image}})
-
-            try:
-                self.bulk.execute()
-            except BulkWriteError as bwe:
-                print(bwe.details)
+            requests = self._add_images(new_images)
+            self.images_cache.bulk_write(requests)
         else:
             print('Dont have new images')
+
+    def _add_images(self, new_images):
+        requests = []
+        for image in new_images:
+            requests.append(
+                UpdateOne(
+                    {'username': self.username},
+                    {'$push': {'images': image}}
+                )
+            )
+        return requests
 
     def remove_image(self, image):
         if not self.isImageExists(image):

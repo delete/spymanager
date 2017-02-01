@@ -9,6 +9,8 @@ bot:
   user: bot
   links:
     - database
+  log_opt:
+    max-size: "50k"
 
 database:
   container_name: spy_bot_db

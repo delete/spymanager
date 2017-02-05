@@ -174,7 +174,7 @@ def unregister_spy(message):
 @bot.message_handler(commands=['addgroup'])
 def add_group(message):
     def add_user_to_group(replied_message):
-        group_name = replied_message.text
+        group_name = replied_message.text.lower()
         spy_user = get_spy(replied_message.from_user.username)
 
         if not group_name:
@@ -198,7 +198,7 @@ def add_group(message):
 @bot.message_handler(commands=['rmgroup'])
 def remove_group(message):
     def _remove_group(replied_message):
-        group_name = replied_message.text
+        group_name = replied_message.text.lower()
         spy_user = get_spy(replied_message.from_user.username)
 
         # Must remove all members first, to unsubscriber them
@@ -239,7 +239,7 @@ def list_groups(message):
 @bot.message_handler(commands=['groupusers'])
 def list_group_members(message):
     def members_from_group(replied_message):
-        group_name = replied_message.text
+        group_name = replied_message.text.lower()
         spy_user = get_spy(replied_message.from_user.username)
 
         if not group_name:
@@ -346,7 +346,7 @@ def add_user(message):
 
     def get_group_name(replied_message):
         global group_name
-        group_name = replied_message.text
+        group_name = replied_message.text.lower()
 
         question_message = "Who do you wanna spy on?"
         callback = add_users_to_group
@@ -374,7 +374,7 @@ def remove_user(message):
 
     def get_group_name(replied_message):
         global group_name
-        group_name = replied_message.text
+        group_name = replied_message.text.lower()
 
         question_message = "Who do you wanna remove?"
         callback = _remove_user

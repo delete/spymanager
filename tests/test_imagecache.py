@@ -2,19 +2,19 @@ import sys
 sys.path.insert(0, '../spymanager')
 sys.path.insert(0, '../')
 
-from tests import create_database_connection
+from tests import create_database_collection
 from src.imagecache import UserImageCacheManager
 
 
 # Database settings
 DATABASE_NAME = 'spies_database'
 COLLECTION_NAME = 'images_cache'
-mongo = create_database_connection(DATABASE_NAME, COLLECTION_NAME)
+images_cache_collection = create_database_collection(DATABASE_NAME, COLLECTION_NAME)
 
 # User to test
 USERNAME = 'pinheirofellipe'
 
-user_image_manager = UserImageCacheManager(mongo)
+user_image_manager = UserImageCacheManager(images_cache_collection)
 
 # Clear before tests
 user_image_manager.remove(USERNAME)
@@ -34,7 +34,7 @@ images = [
 ]
 
 user.add_images(images)
-
+print(user)
 assert len(user.images) == 3
 
 image_to_remove = 'someURL1'

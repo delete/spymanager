@@ -7,9 +7,8 @@ TELEGRAM_URL = 'https://api.telegram.org/bot{token}/{method}?chat_id={chat_id}&t
 class Manager():
     """ Manage objects adding, removing and getting from database """
 
-    def __init__(self, database):
-        self.database = database
-        self.collection = self.database.collection
+    def __init__(self, collection):
+        self.collection = collection
 
     def add(self, username):
         try:

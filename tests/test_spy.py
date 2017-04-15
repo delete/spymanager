@@ -2,20 +2,20 @@ import sys
 sys.path.insert(0, '../spymanager')
 sys.path.insert(0, '../')
 
-from tests import create_database_connection
+from tests import create_database_collection
 from src.spy import SpyManager
 
 # Database settings
 DATABASE_NAME = 'spies_database'
 COLLECTION_NAME = 'subscriptions'
-mongo = create_database_connection(DATABASE_NAME, COLLECTION_NAME)
+subscriptions_collection = create_database_collection(DATABASE_NAME, COLLECTION_NAME)
 
 # User to test
 USERNAME = 'pinheirofellipe'
 CHAT_ID = 123456
 
 # Spy actions
-spy_manager = SpyManager(mongo)
+spy_manager = SpyManager(subscriptions_collection)
 
 # Remove if it's exists
 spy_manager.remove(USERNAME)

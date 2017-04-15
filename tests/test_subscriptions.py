@@ -2,16 +2,16 @@ import sys
 sys.path.insert(0, '../spymanager')
 sys.path.insert(0, '../')
 
-from tests import create_database_connection
+from tests import create_database_collection
 from src.subscriptions import SubscriptionsManager
 
 
 # Database settings
 DATABASE_NAME = 'spies_database'
 COLLECTION_NAME = 'subscriptions'
-mongo = create_database_connection(DATABASE_NAME, COLLECTION_NAME)
+subscriptions_collection = create_database_collection(DATABASE_NAME, COLLECTION_NAME)
 
-subscriptions_manager = SubscriptionsManager(mongo)
+subscriptions_manager = SubscriptionsManager(subscriptions_collection)
 
 # User to test
 USERNAME = 'pinheirofellipe'

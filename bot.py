@@ -6,7 +6,7 @@ from decouple import config
 
 from src.messages import *
 from src.spy import SpyManager
-from src.database import MongoSetup
+from src.database import MongoSetup, CollectionFactory
 from src.imagesite import ImageSite
 from src.subscriptions import SubscriptionsManager
 from src.myexceptions import AlreadyExistsOnDatabaseException
@@ -20,32 +20,24 @@ ADMIN_ID = config('ADMIN_ID')
 
 bot = telebot.TeleBot(API_TOKEN, threaded=True)
 
-# TODO - remove the duplicated code below ASAP
-
 # Database settings
 MONGO_URI = 'mongodb://database:27017/data'
 DATABASE_NAME = 'spies_database'
 
-COLLECTION_NAME = 'spies'
-mongo_spies_client = MongoSetup(MONGO_URI, DATABASE_NAME, COLLECTION_NAME)
-mongo_spies_client.create_index(field='username')
+mongo_client = MongoSetup(MONGO_URI, DATABASE_NAME)
+collection_factory = CollectionFactory(mongo_client)
 
-spy_manager = SpyManager(mongo_spies_client)
+# Spies collection
+spies_collection = collection_factory.create('spies')
+spy_manager = SpyManager(spies_collection)
 
+# Subscription collection
+subscriptions_collection = collection_factory.create('subscriptions')
+subscriptions_manager = SubscriptionsManager(subscriptions_collection)
 
-COLLECTION_NAME = 'subscriptions'
-mongo_subscriptions_client = MongoSetup(
-    MONGO_URI, DATABASE_NAME, COLLECTION_NAME
-)
-mongo_subscriptions_client.create_index(field='username')
-subscriptions_manager = SubscriptionsManager(mongo_subscriptions_client)
-
-
-COLLECTION_NAME = 'images_cache'
-mongo_images_cache = MongoSetup(MONGO_URI, DATABASE_NAME, COLLECTION_NAME)
-mongo_images_cache.create_index(field='username')
-
-image_cache_manager = UserImageCacheManager(mongo_images_cache)
+# Images cache collections
+images_cache_collection = collection_factory.create('images_cache')
+image_cache_manager = UserImageCacheManager(images_cache_collection)
 image_cache_handler = ImageCacheHandler(image_cache_manager)
 
 site = ImageSite()

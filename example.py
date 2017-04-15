@@ -1,4 +1,4 @@
-from src.database import MongoSetup
+from src.database import MongoSetup, CollectionFactory
 from src.spy import SpyManager
 from src.imagesite import ImageSite
 from src.myexceptions import AlreadyExistsOnDatabaseException
@@ -12,11 +12,13 @@ COLLECTION_NAME = 'spies'
 USERNAME = 'pinheirofellipe'
 CHAT_ID = 123465
 
-mongo = MongoSetup(MONGO_URI, DATABASE_NAME, COLLECTION_NAME)
-mongo.create_index(field='username')
+mongo_client = MongoSetup(MONGO_URI, DATABASE_NAME)
+collection_factory = CollectionFactory(mongo_client)
+
+spies_collection = collection_factory.create(COLLECTION_NAME)
 
 # Spy actions
-spy_manager = SpyManager(mongo)
+spy_manager = SpyManager(spies_collection)
 
 # Remove if it's exists
 spy_manager.remove(USERNAME)

@@ -1,4 +1,4 @@
-requests==2.8.1
+requests==2.20.0
 pyTelegramBotAPI==2.1.7
 pymongo==3.4.0
 python-decouple==3.0
